@@ -41,6 +41,11 @@ class ButtonsBlock extends Component{
         this.props.handlerStopDeletingLink();
     }
 
+    handlerStopAddingLinks =() =>{
+        this.setState({addingLinks: false});
+        this.props.handlerStopAddingLink();
+    }
+
     render(){
         return(
             <div>
@@ -49,8 +54,12 @@ class ButtonsBlock extends Component{
                 <button onClick={this.handlerDeleteNode}>Delete Nodes</button>}
                 {this.state.deletingNodes &&
                 <button onClick={this.handlerStopDeletingNode}>Stop Deleting Nodes</button>}
-                <button onClick={this.handlerAddLink}>Add Link</button>
-                {this.state.addingLinks && <div>Choose two node</div>}
+                {!this.state.addingLinks &&
+                <button onClick={this.handlerAddLink}>Add Link</button>}
+                {this.state.addingLinks &&
+                <button onClick={this.handlerStopAddingLinks}>Stop Adding Links</button>}
+                {this.state.addingLinks &&
+                <div>Choose two node</div>}
                 {!this.state.deletingLinks &&
                 <button onClick={this.handlerDeleteLink}>Delete Links</button>}
                 {this.state.deletingLinks &&

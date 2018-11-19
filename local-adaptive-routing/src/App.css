@@ -34,3 +34,11 @@
 .graphContainer{
     height: 100%;
 }
+
+.link{
+  cursor: pointer;
+}
+
+.node{
+  cursor: pointer;
+}

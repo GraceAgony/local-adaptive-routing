@@ -43,11 +43,21 @@ class MyGraph extends Component {
                        {nodes: this.state.data.nodes.filter((value)=>String(value.id)!==nodeId),
                        links: this.state.data.links.filter((link)=>
                            String(link.source)!==nodeId && String(link.target)!==nodeId)})});
-           console.log(this.state);
        }
-       if(this.state.linksAdding){
-           this.setState({nodesChosen: this.state.nodesChosen.push(                                                 {id:nodeId})});
-           if(this.state.nodesChosen.length === 2){
+       if(this.state.linksAdding) {
+           let newNode = {id: nodeId};
+
+           if (this.state.nodesChosen.length > 0) {
+               for (let i = 0; i < this.state.nodesChosen; i++) {
+                   console.log(this.state.nodesChosen[i].id);
+                   if (this.state.nodesChosen[i].id == nodeId) {
+                       console.log('same');
+                       return
+                   }
+               }
+           }
+           this.setState({nodesChosen: Object.assign(this.state.nodesChosen, this.state.nodesChosen.push(newNode))});
+           if (this.state.nodesChosen.length === 2) {
                this.addLink();
            }
        }
@@ -66,7 +76,18 @@ class MyGraph extends Component {
     };
 
     onClickLink =  (source, target) => {
-        //window.alert(`Clicked link between ${source} and ${target}`);
+        console.log(`linkClicked source: ${source} target: ${target}`);
+            if(this.state.linksDeleting){
+             let newLinks =  this.state.data.links.filter((link)=>{
+                 console.log(link);
+                 return (link.source!==source || link.target!==target)&&
+                 (link.source!==target || link.target!==source)}).map(
+                     (value => new Object({target: value.target, source: value.source})));
+            this.setState({data :
+                    Object.assign(this.state.data,
+                        {links: newLinks})});
+            console.log(this.state.data.links);
+        }
     };
 
     onRightClickLink =  (event, source, target) => {
@@ -85,7 +106,7 @@ class MyGraph extends Component {
         let id=this.state.currentNodeId;
         this.setState({
             currentNodeId: id+1,
-            data : Object.assign(this.state.data, this.state.data.nodes.push({id: id}))
+            data : Object.assign(this.state.data, this.state.data.nodes.push({id: String(id)}))
         });
     };
 
@@ -101,16 +122,31 @@ class MyGraph extends Component {
        this.setState({linksAdding: true})
     }
 
+    handlerStopAddingLink= () => {
+        this.setState({linksAdding: false})
+    }
+
+
+
     addLink = () =>{
+        let newLink =  {source: this.state.nodesChosen[0].id, target: this.state.nodesChosen[1].id};
+        for(let i=0; i<this.state.data.links.length; i++){
+            if((this.state.data.links[i].source===newLink.source)&&
+                (this.state.data.links[i].target===newLink.target)){
+                return;
+            }
+        }
         this.setState({
-            data : Object.assign(this.state.data, this.state.data.links.push(
-                {source: this.state.nodesChosen[0], target: this.state.nodesChosen[1]})),
+            data : Object.assign(this.state.data, this.state.data.links.push(newLink)),
             nodesChosen: []
         });
+        this.forceUpdate();
     }
 
     handlerDeleteLink=()=>{
-
+        this.setState({
+            linksDeleting: true
+        })
     }
 
     handlerStopDeletingLink=() =>{
@@ -141,6 +177,7 @@ class MyGraph extends Component {
                 handlerAddLink={this.handlerAddLink}
                 handlerDeleteLink={this.handlerDeleteLink}
                 handlerStopDeletingLink={this.handlerStopDeletingLink}
+                handlerStopAddingLink={this.handlerStopAddingLink}
             />
            </Fragment>
         )
