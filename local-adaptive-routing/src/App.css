@@ -42,3 +42,16 @@
 .node{
   cursor: pointer;
 }
+
+#root{
+    height: 100%;
+}
+
+#graph-id-graph-wrapper{
+    height: 90%;
+}
+
+svg{
+    height:100% !important;
+    width: 100% !important;
+}
