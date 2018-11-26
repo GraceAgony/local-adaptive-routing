@@ -5,13 +5,14 @@ import ButtonsBlock from './ButtonsBlock';
 class MyGraph extends Component {
     constructor(props) {
         super(props);
-
+        this.channelsWeight = [3, 5, 7, 8, 11, 12, 15, 18, 21, 25, 28, 30];
+        let data = this.generateNetwork();
         this.state = {
-            currentNodeId : 1,
-            currentTextId : 0,
+            currentNodeId : data.nodeCurrentId,
+            currentTextId : data.currentTextId,
             data : {
-                nodes: [{id: '0'}],
-                links: []
+                nodes: data.nodes,
+                links: data.links
             },
             nodesDeleting: false,
             linksDeleting: false,
@@ -22,9 +23,11 @@ class MyGraph extends Component {
             }
         };
 
+
         this.myConfig = {
                 nodeHighlightBehavior: true,
                 linkHighlightBehavior: true,
+
                 maxZoom:0,
                 minZoom: 0,
                 node: {
@@ -32,7 +35,8 @@ class MyGraph extends Component {
                     size: 300,
                     highlightStrokeColor: 'blue',
                     fontSize:15,
-                    highlightFontSize: 15
+                    highlightFontSize: 15,
+                    fontColor: "red"
                 },
                 link: {
                     highlightColor: 'lightblue',
@@ -40,12 +44,128 @@ class MyGraph extends Component {
                     color: 'green'
                 }
             };
+
+
     }
+
+    generateNetwork= () => {
+        let nodes = [];
+        let nodeCurrentId = 0;
+        let links = [];
+        let currentTextId = 0;
+        for (let i = 0; i < 30; i++) {
+            nodes.push({id: nodeCurrentId + ""});
+            nodeCurrentId++;
+        }
+        ;
+        let nMax;
+        let i = 0;
+        let nodesArr = [];
+        for (let i = 0; i < 30; i++) {
+            if (nodes[i].id % 2 === 0) {
+                nMax = 3;
+            } else {
+                nMax = 4;
+            }
+            for (let j = 0; j < nMax; j++) {
+                nodesArr.push(nodes[i].id);
+            }
+        }
+        for (let k = 1; k < 4; k++) {
+            for (i; i < k * 10; i++) {
+                while (nodesArr.indexOf(nodes[i].id) !== -1) {
+                    let newLink = {};
+                    let target;
+                    let arr = nodesArr.filter((node) =>
+                        (node <= k * 10 - 1) && (node > (k - 1) * 10)
+                        && (node !== nodes[i].id));
+                    if (arr.length > 0) {
+                        let targetExist = true;
+                        while (targetExist) {
+                            target = arr[Math.floor(Math.random() * arr.length)];
+                            targetExist = false;
+                            for (let j = 0; j < links.length; j++) {
+                                if (((links[j].source === nodes[i].id) && (links[j].target === target)) ||
+                                    ((links[j].source === target) && (links[j].target === nodes[i].id))) {
+                                    targetExist = true;
+                                }
+                            }
+                        }
+                        let index = nodesArr.indexOf(target);
+                        nodesArr.splice(index, 1);
+                        newLink = {
+                            source: nodes[i].id,
+                            target: target,
+                            text: {
+                                value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
+                                id: "text" + currentTextId
+                            }
+                        };
+                        index = nodesArr.indexOf(nodes[i].id);
+                        nodesArr.splice(index, 1);
+                        links.push(newLink);
+                        currentTextId++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            i = k * 10;
+        }
+
+        for(let m = 0; m<3; m++) {
+            let targetExist = true;
+            let targetArr=[];
+            let sourceArr = [];
+            let target;
+            let source;
+            while (targetExist) {
+                switch (m) {
+                    case 0: targetArr = nodes.slice(0,9);
+                            sourceArr = nodes.slice(10,19);
+                        break;
+                    case 1:
+                        targetArr = nodes.slice(10,19);
+                        sourceArr = nodes.slice(20,29);
+                        break;
+                    case 2:
+                        targetArr = nodes.slice(20,29);
+                        sourceArr = nodes.slice(0,9);
+                        break;
+                }
+                 target = targetArr[Math.floor(Math.random() * targetArr.length)].id;
+                 source = sourceArr[Math.floor(Math.random() * sourceArr.length)].id;
+                console.log(target + "  "+ source);
+                targetExist = false;
+                if (target === source) {
+                    targetExist = true;
+                }
+                for (let j = 0; j < links.length; j++) {
+                    if (((links[j].source === source) && (links[j].target === target)) ||
+                        ((links[j].source === target) && (links[j].target === source))) {
+                        targetExist = true;
+                    }
+                }
+            }
+            let newLink = {
+                source: source,
+                target: target,
+                text: {
+                    value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
+                    id: "text" + currentTextId
+                }
+            };
+            links.push(newLink);
+            currentTextId++;
+        }
+            return {nodes: nodes,  nodeCurrentId: nodeCurrentId, links: links, currentTextId: currentTextId};
+    };
 
     onClickGraph =  () => {
        // window.alert(`Clicked the graph background`);
         this.someChanges();
     };
+
 
     onClickNode =(nodeId) => {
         if(this.state.data.nodes.length === 1){return}
@@ -99,6 +219,9 @@ class MyGraph extends Component {
         for(let i =0; i<this.state.data.nodes.length; i++) {
             let id = this.state.data.nodes[i].id;
             let elem = document.getElementById(id);
+            if(!elem){
+                return;
+            }
             let cx = elem.getAttribute('cx');
             let cy = elem.getAttribute('cy');
             if (id in this.state.nodesPlaces) {
@@ -216,22 +339,38 @@ class MyGraph extends Component {
 
 
 
-    addLink = () =>{
+    addLink = (source, target) =>{
         let id=this.state.currentTextId;
-        if(this.state.nodesChosen[0].id === this.state.nodesChosen[1].id){
-            let arr = [this.state.nodesChosen[0].id];
-            this.setState({
-                nodesChosen: arr,
-            });
-            return;
+
+        let newLink ={};
+        if(source&& target){
+             newLink = {
+                source: this.state.source, target: this.state.target,
+                text: {
+                    value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
+                    id: "text" + id
+                }
+            };
+        }else {
+            if(this.state.nodesChosen[0].id === this.state.nodesChosen[1].id){
+                let arr = [this.state.nodesChosen[0].id];
+                this.setState({
+                    nodesChosen: arr,
+                });
+                return;
+            }
+             newLink = {
+                source: this.state.nodesChosen[0].id, target: this.state.nodesChosen[1].id,
+                text: {
+                    value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
+                    id: "text" + id
+                }
+            };
         }
-        let newLink =  {source: this.state.nodesChosen[0].id, target: this.state.nodesChosen[1].id,
-            text:{value: (Math.random()*100).toFixed(0), id: "text"+id}
-        };
         for(let i=0; i<this.state.data.links.length; i++){
             if((this.state.data.links[i].source===newLink.source)&&
                 (this.state.data.links[i].target===newLink.target)){
-                return;
+                return false;
             }
         }
         this.setState({
@@ -239,7 +378,9 @@ class MyGraph extends Component {
             nodesChosen: [],
             currentTextId: id+1
         });
+
         this.someChanges();
+        return true;
     }
 
     handlerDeleteLink=()=>{
