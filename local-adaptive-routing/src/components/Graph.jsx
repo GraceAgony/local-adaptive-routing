@@ -18,6 +18,9 @@ class MyGraph extends Component {
             linksDeleting: false,
             linksAdding: false,
             nodesChosen: [],
+            channelTypeValue: "duplex",
+            weightSettingValue: "random",
+            manualInputValue: "3",
             nodesPlaces : {
 
             }
@@ -36,7 +39,7 @@ class MyGraph extends Component {
                     highlightStrokeColor: 'blue',
                     fontSize:15,
                     highlightFontSize: 15,
-                    fontColor: "red"
+                    fontColor: "red",
                 },
                 link: {
                     highlightColor: 'lightblue',
@@ -96,6 +99,7 @@ class MyGraph extends Component {
                         newLink = {
                             source: nodes[i].id,
                             target: target,
+                            channelTypeValue: "duplex",
                             text: {
                                 value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
                                 id: "text" + currentTextId
@@ -150,6 +154,7 @@ class MyGraph extends Component {
             let newLink = {
                 source: source,
                 target: target,
+                channelTypeValue: "duplex",
                 text: {
                     value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
                     id: "text" + currentTextId
@@ -194,9 +199,6 @@ class MyGraph extends Component {
                }
            }
            this.setState({nodesChosen: Object.assign(this.state.nodesChosen, this.state.nodesChosen.push(newNode))});
-           if (this.state.nodesChosen.length === 2) {
-               this.addLink();
-           }
        }
         this.someChanges();
     };
@@ -330,46 +332,72 @@ class MyGraph extends Component {
     };
 
     handlerAddLink =() =>{
-       this.setState({linksAdding: true})
-    }
+
+       this.addLink();
+    };
+
+    handlerParamsChanged = (manualInput, channelTypeValue, weightSettingValue, manualInputValue)=>{
+        this.setState({
+            channelTypeValue: channelTypeValue,
+            weightSettingValue: weightSettingValue,
+            manualInputValue: manualInputValue,
+        });
+    };
+
+    handlerStartAddingLinks =() =>{
+        this.setState({linksAdding: true});
+    };
 
     handlerStopAddingLink= () => {
         this.setState({linksAdding: false})
-    }
+    };
 
 
 
-    addLink = (source, target) =>{
-        let id=this.state.currentTextId;
+    addLink = (source, target) => {
+        let id = this.state.currentTextId;
 
-        let newLink ={};
-        if(source&& target){
-             newLink = {
-                source: this.state.source, target: this.state.target,
+        let newLink = {};
+        let value = this.state.weightSettingValue === "random" ?
+            this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)]
+            : this.state.manualInputValue;
+        if (source && target) {
+            newLink = {
+                source: this.state.source,
+                target: this.state.target,
+                channelType: this.state.channelTypeValue,
                 text: {
-                    value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
+                    value: value,
                     id: "text" + id
                 }
             };
-        }else {
-            if(this.state.nodesChosen[0].id === this.state.nodesChosen[1].id){
-                let arr = [this.state.nodesChosen[0].id];
-                this.setState({
-                    nodesChosen: arr,
-                });
-                return;
+        } else {
+            if (this.state.nodesChosen.length === 2) {
+                if (this.state.nodesChosen[0].id === this.state.nodesChosen[1].id) {
+                    let arr = [this.state.nodesChosen[0].id];
+                    this.setState({
+                        nodesChosen: arr,
+                    });
+                    return;
+                }
+                console.log(value + '   '+ this.state.channelTypeValue);
+                newLink = {
+                    source: this.state.nodesChosen[0].id,
+                    target: this.state.nodesChosen[1].id,
+                    channelType: this.state.channelTypeValue,
+                    text: {
+                        value: value,
+                        id: "text" + id
+                    }
+                };
+            }else
+            {
+               return false;
             }
-             newLink = {
-                source: this.state.nodesChosen[0].id, target: this.state.nodesChosen[1].id,
-                text: {
-                    value: this.channelsWeight[Math.floor(Math.random() * this.channelsWeight.length)],
-                    id: "text" + id
-                }
-            };
         }
-        for(let i=0; i<this.state.data.links.length; i++){
-            if((this.state.data.links[i].source===newLink.source)&&
-                (this.state.data.links[i].target===newLink.target)){
+        for (let i = 0; i < this.state.data.links.length; i++) {
+            if ((this.state.data.links[i].source === newLink.source) &&
+                (this.state.data.links[i].target === newLink.target)) {
                 return false;
             }
         }
@@ -381,19 +409,19 @@ class MyGraph extends Component {
 
         this.someChanges();
         return true;
-    }
+    };
 
     handlerDeleteLink=()=>{
         this.setState({
             linksDeleting: true
         })
-    }
+    };
 
     handlerStopDeletingLink=() =>{
         this.setState({
             linksDeleting: false
         })
-    }
+    };
 
 
     render() {
@@ -421,6 +449,8 @@ class MyGraph extends Component {
                 handlerDeleteLink={this.handlerDeleteLink}
                 handlerStopDeletingLink={this.handlerStopDeletingLink}
                 handlerStopAddingLink={this.handlerStopAddingLink}
+                handlerStartAddingLinks={this.handlerStartAddingLinks}
+                handlerParamsChanged = {this.handlerParamsChanged}
             />
            </Fragment>
         )
