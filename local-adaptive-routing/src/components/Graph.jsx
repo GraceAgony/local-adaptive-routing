@@ -1,11 +1,18 @@
 import { Graph } from 'react-d3-graph';
 import React, {Component, Fragment} from 'react';
 import ButtonsBlock from './ButtonsBlock';
+import Dijkstra from "./../Dijkstra's";
 
 class MyGraph extends Component {
     constructor(props) {
         super(props);
         this.channelsWeight = [3, 5, 7, 8, 11, 12, 15, 18, 21, 25, 28, 30];
+        // let data = {
+        //     nodes : [{id:"0"}],
+        //     links: [],
+        //     nodeCurrentId: 1,
+        //     currentTextId: 0
+        // };
         let data = this.generateNetwork();
         this.state = {
             currentNodeId : data.nodeCurrentId,
@@ -48,8 +55,8 @@ class MyGraph extends Component {
                 }
             };
 
-
     }
+
 
     generateNetwork= () => {
         let nodes = [];
@@ -139,7 +146,6 @@ class MyGraph extends Component {
                 }
                  target = targetArr[Math.floor(Math.random() * targetArr.length)].id;
                  source = sourceArr[Math.floor(Math.random() * sourceArr.length)].id;
-                console.log(target + "  "+ source);
                 targetExist = false;
                 if (target === source) {
                     targetExist = true;
@@ -173,6 +179,8 @@ class MyGraph extends Component {
 
 
     onClickNode =(nodeId) => {
+
+
         if(this.state.data.nodes.length === 1){return}
        if(this.state.nodesDeleting){
            let links = this.state.data.links.filter((link)=>
@@ -192,7 +200,6 @@ class MyGraph extends Component {
 
            if (this.state.nodesChosen.length > 0) {
                for (let i = 0; i < this.state.nodesChosen.length; i++) {
-                   console.log(this.state.nodesChosen[i].id);
                    if (this.state.nodesChosen[i].id === nodeId) {
                        return
                    }
@@ -204,6 +211,7 @@ class MyGraph extends Component {
     };
 
     onRightClickNode =(event, nodeId)=> {
+
        // window.alert(`Right clicked node ${nodeId}`);
     };
 
@@ -282,7 +290,6 @@ class MyGraph extends Component {
         };
 
     onClickLink =  (source, target) => {
-        console.log(`linkClicked source: ${source} target: ${target}`);
             if(this.state.linksDeleting){
                 let links = this.state.data.links.filter(
                     (link)=>(link.source === source && link.target === target)||
@@ -332,7 +339,6 @@ class MyGraph extends Component {
     };
 
     handlerAddLink =() =>{
-
        this.addLink();
     };
 
@@ -365,7 +371,7 @@ class MyGraph extends Component {
             newLink = {
                 source: this.state.source,
                 target: this.state.target,
-                channelType: this.state.channelTypeValue,
+                channelTypeValue: this.state.channelTypeValue,
                 text: {
                     value: value,
                     id: "text" + id
@@ -380,11 +386,10 @@ class MyGraph extends Component {
                     });
                     return;
                 }
-                console.log(value + '   '+ this.state.channelTypeValue);
                 newLink = {
                     source: this.state.nodesChosen[0].id,
                     target: this.state.nodesChosen[1].id,
-                    channelType: this.state.channelTypeValue,
+                    channelTypeValue: this.state.channelTypeValue,
                     text: {
                         value: value,
                         id: "text" + id
@@ -392,6 +397,9 @@ class MyGraph extends Component {
                 };
             }else
             {
+                this.setState({
+                    nodesChosen: [],
+                });
                return false;
             }
         }
@@ -423,6 +431,11 @@ class MyGraph extends Component {
         })
     };
 
+    Dijkstra = () =>{
+        console.log( Dijkstra(this.state.data.nodes[0],
+            this.state.data.nodes,
+            this.state.data.links))
+    };
 
     render() {
         return (
@@ -441,6 +454,7 @@ class MyGraph extends Component {
                 onMouseOverLink={this.onMouseOverLink}
                 onMouseOutLink={this.onMouseOutLink}
             />
+               <button onClick={this.Dijkstra}>Dijkstra</button>
             <ButtonsBlock
                 handlerAddNode={this.handlerAddNode}
                 handlerDeleteNode={this.handlerDeleteNode}
