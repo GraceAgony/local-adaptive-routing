@@ -11,7 +11,12 @@ class ButtonsBlock extends Component{
             manualInput: false,
             channelTypeValue: "duplex",
             weightSettingValue: "random",
-            manualInputValue: "3"
+            manualInputValue: "3",
+            messageSending: false,
+            sendingType: 'datagram',
+            messageSize: 0,
+            packageSize: 0,
+            error: false
         }
 
     }
@@ -64,6 +69,18 @@ class ButtonsBlock extends Component{
             this.state.manualInputValue);
     };
 
+    sendingTypeChanged = (event) => {
+        this.setState({sendingType: event.target.value});
+    };
+
+    messageSizeChanged = (event) =>{
+        this.setState({messageSize: event.target.value});
+    };
+
+    packageSizeChanged = (event) =>{
+        this.setState({packageSize: event.target.value});
+    };
+
     weightSettingChanged = (event) =>{
         if(event.target.value === "manualInput"){
             this.setState({weightSettingValue: event.target.value,
@@ -85,6 +102,18 @@ class ButtonsBlock extends Component{
             this.state.channelTypeValue,
             this.state.weightSettingValue,
             event.target.value);
+    };
+
+    showSendingOptions = () =>{
+        this.setState({messageSending: true});
+    };
+
+    sendMessage = () =>{
+        if(this.state.packageSize>this.state.messageSize){
+            alert('wrong input');
+        }else{
+            
+        }
     };
 
     render(){
@@ -139,6 +168,29 @@ class ButtonsBlock extends Component{
                 <button onClick={this.handlerDeleteLink}>Delete Links</button>}
                 {this.state.deletingLinks &&
                 <button onClick={this.handlerStopDeletingLink}>Stop Deleting Links</button>}
+                <button onClick={this.showSendingOptions}>Send Message</button>
+                {this.state.messageSending &&
+                   <div>
+                       <select name="sendingType"
+                               value={this.state.sendingType}
+                               onChange={this.sendingTypeChanged}>
+                           <option value="datagram">Datagram</option>
+                           <option value="connection">Connection</option>
+                           <option value="virtual channel">Virtual Channel</option>
+                       </select>
+                    <div>
+                        <label>Message Size</label>
+                        <input onChange={this.messageSizeChanged}
+                               type="number"></input>
+                     </div>
+                    <div>
+                        <label>Package Size</label>
+                         <input onChange={this.packageSizeChanged}
+                                type="number"></input>
+                    </div>
+                       <button onClick={this.sendMessage}>Send Message</button>
+                   </div>
+                }
             </div>
         )
     }
